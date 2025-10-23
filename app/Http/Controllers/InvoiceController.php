@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Invoice;
-use Illuminate\Http\Request;
 
 class InvoiceController extends Controller
 {
@@ -13,6 +12,9 @@ class InvoiceController extends Controller
         if ($invoice->payment->booking->user_id !== auth()->id()) {
             abort(403);
         }
+
+        // Load relasi untuk tampilan invoice
+        $invoice->load(['payment.booking.flight.plane.airline', 'payment.booking.user']);
 
         return view('invoices.show', compact('invoice'));
     }

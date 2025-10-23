@@ -12,7 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('flight_id')->constrained()->onDelete('cascade');
             $table->string('seat_number');
+            $table->enum('class', ['economy', 'business'])->default('economy');
+            $table->boolean('is_emergency_exit')->default(false);
             $table->boolean('is_booked')->default(false);
+            $table->decimal('price_multiplier', 3, 2)->default(1.00);
             $table->timestamps();
         });
     }

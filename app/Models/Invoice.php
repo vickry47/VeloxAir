@@ -15,7 +15,6 @@ class Invoice extends Model
         'invoice_date',
     ];
 
-    // Tambahkan casting di sini
     protected $casts = [
         'invoice_date' => 'datetime',
     ];

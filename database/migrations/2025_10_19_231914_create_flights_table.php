@@ -11,10 +11,15 @@ return new class extends Migration
         Schema::create('flights', function (Blueprint $table) {
             $table->id();
             $table->foreignId('plane_id')->constrained()->onDelete('cascade');
-            $table->string('origin');
-            $table->string('destination');
+            $table->foreignId('origin_airport_id')->constrained('airports');
+            $table->foreignId('destination_airport_id')->constrained('airports');
+            $table->string('flight_number')->unique();
             $table->dateTime('departure_time');
-            $table->decimal('price_per_seat', 10, 2);
+            $table->dateTime('arrival_time');
+            $table->integer('duration_minutes');
+            $table->decimal('price_per_seat', 10, 2); // ✅ GUNAKAN price_per_seat
+            $table->integer('available_seats');
+            $table->enum('status', ['scheduled', 'active', 'cancelled', 'completed'])->default('scheduled'); // ✅ TAMBAH status
             $table->timestamps();
         });
     }

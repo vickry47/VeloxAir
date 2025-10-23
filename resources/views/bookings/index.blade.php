@@ -9,49 +9,7 @@
             <p class="text-xl mb-8">Temukan penerbangan terbaik ke destinasi impian Anda</p>
         </div>
         
-        <!-- Search Form -->
-
-<div class="bg-white rounded-xl p-6 shadow-lg">
-    <form action="{{ route('flights.index') }}" method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Dari</label>
-            <select name="origin" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Pilih Bandara Asal</option>
-                {{-- @foreach($airports as $airport) --}}
-                {{-- <option value="{{ $airport->code }}" {{ request('origin') == $airport->code ? 'selected' : '' }}> --}}
-                    {{-- {{ $airport->code }} - {{ $airport->city }} --}}
-                {{-- </option> --}}
-                {{-- @endforeach --}}
-                
-                {{-- Temporary hardcoded options --}}
-                <option value="CGK">CGK - Jakarta</option>
-                <option value="SUB">SUB - Surabaya</option>
-                <option value="DPS">DPS - Denpasar</option>
-                <option value="KNO">KNO - Medan</option>
-            </select>
-        </div>
-        
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">Ke</label>
-            <select name="destination" class="w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                <option value="">Pilih Bandara Tujuan</option>
-                {{-- @foreach($airports as $airport) --}}
-                {{-- <option value="{{ $airport->code }}" {{ request('destination') == $airport->code ? 'selected' : '' }}> --}}
-                    {{-- {{ $airport->code }} - {{ $airport->city }} --}}
-                {{-- </option> --}}
-                {{-- @endforeach --}}
-                
-                {{-- Temporary hardcoded options --}}
-                <option value="CGK">CGK - Jakarta</option>
-                <option value="SUB">SUB - Surabaya</option>
-                <option value="DPS">DPS - Denpasar</option>
-                <option value="KNO">KNO - Medan</option>
-            </select>
-        </div>
-        
-        <!-- ... rest of the form ... -->
-    </form>
-</div>
+        <!-- Search Form DIHAPUS -->
     </div>
 
     <!-- Flights List -->
@@ -127,9 +85,49 @@
         </div>
         
         <!-- Pagination -->
+        @if($flights->hasPages())
         <div class="mt-8">
-            {{ $flights->links() }}
+            <div class="flex justify-center items-center space-x-4">
+                <!-- Previous Page Link -->
+                @if($flights->onFirstPage())
+                    <span class="px-4 py-2 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-left mr-2"></i>Sebelumnya
+                    </span>
+                @else
+                    <a href="{{ $flights->previousPageUrl() }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-chevron-left mr-2"></i>Sebelumnya
+                    </a>
+                @endif
+
+                <!-- Page Numbers -->
+                <div class="flex space-x-2">
+                    @foreach(range(1, $flights->lastPage()) as $page)
+                        @if($page == $flights->currentPage())
+                            <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold">{{ $page }}</span>
+                        @else
+                            <a href="{{ $flights->url($page) }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">{{ $page }}</a>
+                        @endif
+                    @endforeach
+                </div>
+
+                <!-- Next Page Link -->
+                @if($flights->hasMorePages())
+                    <a href="{{ $flights->nextPageUrl() }}" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Selanjutnya<i class="fas fa-chevron-right ml-2"></i>
+                    </a>
+                @else
+                    <span class="px-4 py-2 text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+                        Selanjutnya<i class="fas fa-chevron-right ml-2"></i>
+                    </span>
+                @endif
+            </div>
+            
+            <!-- Page Info -->
+            <div class="text-center mt-4 text-gray-600">
+                Menampilkan {{ $flights->firstItem() ?? 0 }} - {{ $flights->lastItem() ?? 0 }} dari {{ $flights->total() }} penerbangan
+            </div>
         </div>
+        @endif
     @else
         <div class="bg-white rounded-xl shadow-md p-12 text-center">
             <i class="fas fa-search text-6xl text-gray-300 mb-4"></i>

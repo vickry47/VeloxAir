@@ -21,7 +21,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role', // tambahkan ini
+        'role',
+        'phone', // ✅ TAMBAH
     ];
 
 
@@ -51,6 +52,23 @@ class User extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(Booking::class);
+    }
+
+    // Method untuk cek role
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function isUser()
+    {
+        return $this->role === 'user';
+    }
+
+    // Accessor untuk avatar
+    public function getAvatarAttribute()
+    {
+        return strtoupper(substr($this->name, 0, 1));
     }
 
 }

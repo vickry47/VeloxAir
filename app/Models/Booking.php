@@ -13,7 +13,16 @@ class Booking extends Model
         'user_id',
         'flight_id',
         'seat_number',
+        'passenger_name', 
+        'passenger_email',
+        'passenger_phone',
+        'seat_class',
+        'total_price', 
         'status'
+    ];
+
+    protected $casts = [
+        'total_price' => 'decimal:2',
     ];
 
     public function flight()
@@ -29,5 +38,16 @@ class Booking extends Model
     public function payment()
     {
         return $this->hasOne(Payment::class);
+    }
+
+    // Scope untuk status
+    public function scopePending($query)
+    {
+        return $query->where('status', 'pending');
+    }
+
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', 'confirmed');
     }
 }

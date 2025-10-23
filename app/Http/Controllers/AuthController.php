@@ -20,13 +20,15 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
+            'phone' => 'nullable|string|max:20', // ✅ TAMBAH phone
         ]);
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role' => 'user', // default role
+            'phone' => $request->phone, // ✅ TAMBAH phone
+            'role' => 'user',
         ]);
 
         return redirect()->route('login')->with('success', 'Register berhasil, silakan login.');
@@ -63,4 +65,3 @@ class AuthController extends Controller
         return redirect('/login');
     }
 }
-

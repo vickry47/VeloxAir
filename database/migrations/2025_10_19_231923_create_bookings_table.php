@@ -13,7 +13,12 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('flight_id')->constrained()->onDelete('cascade');
             $table->string('seat_number');
-            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->string('passenger_name');
+            $table->string('passenger_email');
+            $table->string('passenger_phone')->nullable();
+            $table->enum('seat_class', ['economy', 'business'])->default('economy');
+            $table->enum('status', ['pending', 'confirmed', 'cancelled', 'completed'])->default('pending');
+            $table->decimal('total_price', 10, 2);
             $table->timestamps();
         });
     }

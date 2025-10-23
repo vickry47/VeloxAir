@@ -4,78 +4,53 @@ namespace App\Http\Controllers;
 
 use App\Models\Booking;
 use App\Models\Payment;
-use App\Models\Invoice;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
-    public function index()
+    public function create(Booking $booking)
     {
-        $bookings = Booking::with('flight', 'payment')
-            ->where('user_id', auth()->id())
-            ->get();
+        // Authorization - hanya user yang punya booking yang bisa bayar
+        if ($booking->user_id !== auth()->id()) {
+            abort(403);
+        }
 
-        return view('booking.index', compact('bookings'));
+        // Cek jika booking sudah paid
+        if ($booking->status === 'confirmed') {
+            return redirect()->route('bookings.show', $booking)
+                           ->with('info', 'Booking ini sudah dibayar.');
+        }
+
+        $booking->load(['flight.plane.airline', 'flight.originAirport', 'flight.destinationAirport']);
+        
+        return view('payments.create', compact('booking'));
     }
 
-    // Menampilkan form pembayaran
-    public function showPaymentForm(Booking $booking)
+    public function store(Request $request, Booking $booking)
     {
         if ($booking->user_id !== auth()->id()) {
             abort(403);
         }
 
-        return view('payment.form', compact('booking'));
-    }
-
-    // Memproses pembayaran
-    public function pay(Request $request, Booking $booking)
-    {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
+        // Validasi payment method
         $request->validate([
-            'method' => 'required|string|max:50',
+            'payment_method' => 'required|in:credit_card,bank_transfer,e_wallet',
         ]);
 
-        // Update status booking menjadi confirmed
-        $booking->update(['status' => 'confirmed']);
+        // Update status booking
+        $booking->update([
+            'status' => 'confirmed'
+        ]);
 
-        // Create atau update payment
-        $payment = Payment::updateOrCreate(
-            ['booking_id' => $booking->id],
-            [
-                'amount' => $booking->flight->price_per_seat,
-                'method' => $request->method,
-                'status' => 'paid',
-            ]
-        );
+        // Create payment record sesuai struktur migration
+        Payment::create([
+            'booking_id' => $booking->id,
+            'amount' => $booking->total_price,
+            'method' => $request->payment_method, // sesuai field di migration
+            'status' => 'paid' // sesuai enum di migration
+        ]);
 
-        // Create invoice jika belum ada
-        if (!$payment->invoice) {
-            $invoice = Invoice::create([
-                'payment_id' => $payment->id,
-                'invoice_number' => 'INV-' . strtoupper(Str::random(8)),
-                'invoice_date' => now(),
-            ]);
-
-            $payment->setRelation('invoice', $invoice);
-        }
-
-        return redirect()->route('invoices.show', $payment->invoice->id)
-                         ->with('success', 'Pembayaran berhasil! Invoice sudah dibuat.');
-    }
-
-    public function cancel(Booking $booking)
-    {
-        if ($booking->user_id !== auth()->id()) {
-            abort(403);
-        }
-
-        $booking->update(['status' => 'canceled']);
-
-        return redirect()->route('bookings.index')->with('success', 'Booking berhasil dibatalkan.');
+        return redirect()->route('bookings.show', $booking)
+                       ->with('success', 'Pembayaran berhasil! Tiket Anda telah dikonfirmasi.');
     }
 }
