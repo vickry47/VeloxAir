@@ -51,9 +51,11 @@ Route::middleware(['auth'])->group(function () {
 
 // ==================== ADMIN ROUTES ====================
 
-Route::prefix('admin')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/flights', [AdminController::class, 'flights'])->name('admin.flights');
+    Route::get('/flights/create', [AdminController::class, 'createFlight'])->name('admin.flights.create');
+    Route::post('/flights', [AdminController::class, 'storeFlight'])->name('admin.flights.store');
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('admin.bookings');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
 });
