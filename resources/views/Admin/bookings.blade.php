@@ -53,6 +53,12 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {{ $booking->created_at->format('d M Y H:i') }}
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{{ route('admin.bookings.show', $booking) }}" 
+                                class="text-blue-600 hover:text-blue-900">
+                                    <i class="fas fa-eye"></i> Detail
+                                </a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>

@@ -58,4 +58,11 @@ Route::prefix('admin')->group(function () {
     Route::post('/flights', [AdminController::class, 'storeFlight'])->name('admin.flights.store');
     Route::get('/bookings', [AdminController::class, 'bookings'])->name('admin.bookings');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+
+    Route::get('/flights/{flight}/edit', [AdminController::class, 'editFlight'])->name('admin.flights.edit');
+    Route::put('/flights/{flight}', [AdminController::class, 'updateFlight'])->name('admin.flights.update');
+    Route::get('/bookings/{booking}', [AdminController::class, 'showBooking'])->name('admin.bookings.show');
+    Route::put('/bookings/{booking}', [AdminController::class, 'updateBooking'])->name('admin.bookings.update');
+    Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('admin.users.show');
 });
+

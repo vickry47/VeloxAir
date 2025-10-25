@@ -15,7 +15,6 @@ use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
-    
     // Method untuk check admin authorization
     private function checkAdmin()
     {
@@ -136,6 +135,111 @@ class AdminController extends Controller
         return redirect()->route('admin.flights')
                         ->with('success', 'Penerbangan berhasil ditambahkan!');
     }
+
+    // ==================== PHASE 1 METHODS ====================
+
+    public function editFlight(Flight $flight)
+    {
+        $this->checkAdmin();
+        
+        $planes = Plane::with('airline')->where('status', 'active')->get();
+        $airports = Airport::all();
+        
+        return view('admin.edit-flight', compact('flight', 'planes', 'airports'));
+    }
+
+    public function updateFlight(Request $request, Flight $flight)
+    {
+        $this->checkAdmin();
+        
+        $request->validate([
+            'plane_id' => 'required|exists:planes,id',
+            'origin_airport_id' => 'required|exists:airports,id',
+            'destination_airport_id' => 'required|different:origin_airport_id|exists:airports,id',
+            'flight_number' => 'required|unique:flights,flight_number,' . $flight->id,
+            'departure_time' => 'required|date',
+            'arrival_time' => 'required|date|after:departure_time',
+            'price_per_seat' => 'required|numeric|min:0',
+            'status' => 'required|in:active,scheduled,cancelled,completed'
+        ]);
+
+        // Calculate duration
+        $departure = Carbon::parse($request->departure_time);
+        $arrival = Carbon::parse($request->arrival_time);
+        $duration = $departure->diffInMinutes($arrival);
+
+        $flight->update([
+            'plane_id' => $request->plane_id,
+            'origin_airport_id' => $request->origin_airport_id,
+            'destination_airport_id' => $request->destination_airport_id,
+            'flight_number' => $request->flight_number,
+            'departure_time' => $request->departure_time,
+            'arrival_time' => $request->arrival_time,
+            'duration_minutes' => $duration,
+            'price_per_seat' => $request->price_per_seat,
+            'status' => $request->status
+        ]);
+
+        return redirect()->route('admin.flights')
+                        ->with('success', 'Penerbangan berhasil diupdate!');
+    }
+
+    public function showBooking(Booking $booking)
+    {
+        $this->checkAdmin();
+        
+        $booking->load(['user', 'flight.plane.airline', 'flight.originAirport', 'flight.destinationAirport', 'payment.invoice']);
+        
+        return view('admin.booking-detail', compact('booking'));
+    }
+
+    public function updateBooking(Request $request, Booking $booking)
+    {
+        $this->checkAdmin();
+        
+        $request->validate([
+            'status' => 'required|in:pending,confirmed,cancelled,completed'
+        ]);
+
+        $oldStatus = $booking->status;
+        $booking->update(['status' => $request->status]);
+
+        // Jika status berubah dari confirmed ke cancelled, kembalikan kursi
+        if ($oldStatus === 'confirmed' && $request->status === 'cancelled') {
+            $seat = Seat::where('flight_id', $booking->flight_id)
+                       ->where('seat_number', $booking->seat_number)
+                       ->first();
+            if ($seat) {
+                $seat->update(['is_booked' => false]);
+            }
+            $booking->flight->increment('available_seats');
+        }
+
+        // Jika status berubah ke confirmed, kurangi kursi tersedia
+        if ($oldStatus !== 'confirmed' && $request->status === 'confirmed') {
+            $seat = Seat::where('flight_id', $booking->flight_id)
+                       ->where('seat_number', $booking->seat_number)
+                       ->first();
+            if ($seat) {
+                $seat->update(['is_booked' => true]);
+            }
+            $booking->flight->decrement('available_seats');
+        }
+
+        return redirect()->route('admin.bookings.show', $booking)
+                        ->with('success', 'Status pemesanan berhasil diupdate!');
+    }
+
+    public function showUser(User $user)
+    {
+        $this->checkAdmin();
+        
+        $user->load(['bookings.flight.plane.airline', 'bookings.flight.originAirport', 'bookings.flight.destinationAirport']);
+        
+        return view('admin.user-detail', compact('user'));
+    }
+
+    // ==================== HELPER METHODS ====================
 
     private function createSeatsForFlight(Flight $flight, Plane $plane)
     {

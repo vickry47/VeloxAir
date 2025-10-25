@@ -57,6 +57,12 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 Rp {{ number_format($flight->price_per_seat, 0, ',', '.') }}
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a href="{{ route('admin.flights.edit', $flight) }}" 
+                                class="text-blue-600 hover:text-blue-900 mr-3">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
                         </tr>
                         @endforeach
                     </tbody>
